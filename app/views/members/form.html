@@ -1,0 +1,87 @@
+<div class="col-lg-12" ng-method>
+	<div dir-master-actions="[{click: 'save()'},{click: 'delete()', icon: 'remove', type: 'danger', condition : 'member.id'}]"></div>
+
+	<div id="main" class="scrollable">
+		<form role="form">
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_household" placeholder="Household"
+					ng-model="member.household" >
+			</div>
+
+
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_street" placeholder="Street"
+					ng-model="member.street">
+			</div>
+
+
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_city" placeholder="City"
+					ng-model="member.city">
+			</div>
+
+
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_state" placeholder="State"
+					ng-model="member.state">
+			</div>
+
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_zip" placeholder="Zip"
+					ng-model="member.zip">
+			</div>
+
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_phone" placeholder="Phone Number"
+					ng-model="member.phone">
+			</div>
+
+			<div class="form-group">
+				<input type="text" class="form-control" id="member_email" placeholder="Email Address"
+					ng-model="member.email">
+			</div>
+
+			<div class="form-group">
+				<textarea class="form-control" id="member_note"
+					ng-model="member.note"></textarea>
+			</div>
+		</form>
+
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">Companions</div>
+			<div dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/' + member.id + '/assign/companions')"></div>
+			<table class="table scrollable" >
+				<tr ng-repeat="companion in companions" ng-click="redirect('members/' + companion.id + '/edit')">
+					<td width="80px">
+						<gravatar-image gravatar-email="{{companion.email}}" gravatar-object="companion" gravatar-name="{{companion.household}}" gravatar-size="70" ></gravatar-image>
+					</td>
+					<td class="text-v-center">
+						{{companion.household}}</br>
+						{{companion.phone}}</br>
+						{{companion.email}}
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">Families </div>
+			<div dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/' + member.id + '/assign/families')"></div>
+			<table class="table scrollable" >
+				<tr ng-repeat="family in families" ng-click="redirect('members/' + family.id + '/edit')">
+					<td width="80px">
+						<gravatar-image gravatar-email="{{family.email}}" gravatar-object="family" gravatar-name="{{family.household}}" gravatar-size="70" ></gravatar-image>
+					</td>
+					<td class="text-v-center">
+						{{family.household}}</br>
+						{{family.phone}}</br>
+						{{family.email}}
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+</div>

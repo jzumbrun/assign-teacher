@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html ng-app="app" ng-csp ng-controller="AppController" ng-cloak class="scrollable">
+	<head>
+    	<meta charset="utf-8">
+        
+    	<link rel="stylesheet" type="text/css" href="app.css">
+    	<script type="text/javascript" src="app.js"></script>
+
+    	<!-- modules -->
+    	<script type="text/javascript" src="modules/app_module.js"></script>
+
+    	<!-- controllers -->
+    	<script type="text/javascript" src="controllers/app_controller.js"></script>
+    	<script type="text/javascript" src="controllers/members_controller.js"></script>
+
+    	<!-- models -->
+    	<script type="text/javascript" src="models/member.js"></script>
+
+        <script type="text/javascript" src="models/visit.js"></script>
+
+    	<!-- directives -->
+    	<script type="text/javascript" src="directives/collection.js"></script>
+        <script type="text/javascript" src="directives/bootstrap.js"></script>
+
+
+    	<!-- filters -->
+    	<script type="text/javascript" src="filters/collection.js"></script>
+
+    	<!-- libraries -->
+    	<script type="text/javascript" src="libraries/config_provider.js"></script>
+        <script type="text/javascript" src="libraries/imports_service.js"></script>
+        <script type="text/javascript" src="libraries/md5_service.js"></script>
+        <script type="text/javascript" src="libraries/sequelize_provider.js"></script>
+
+    	<title>Assign Teachers</title>
+	</head>
+	<body>
+        <ng-include src="partial('shared/navigation')"></ng-include>
+    	<ng-view></ng-view>
+	</body>
+</html>
