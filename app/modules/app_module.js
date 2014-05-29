@@ -4,11 +4,10 @@ var app = angular.module('app', [
   'config',
   'ngResource',
   'ngRoute',
-  'sequelize',
   'ui-gravatar'
 ]);
 
-app.config(['$configProvider','$routeProvider','$sequelizeProvider', function($configProvider, $routeProvider, $sequelizeProvider) {
+app.config(['$configProvider','$routeProvider', function($configProvider, $routeProvider) {
 
 	$routeProvider.
 		when('/', {
@@ -49,5 +48,4 @@ app.config(['$configProvider','$routeProvider','$sequelizeProvider', function($c
 		otherwise({redirectTo: '/'});
 
 	// load the database
-	$sequelizeProvider.load();
 }]);
