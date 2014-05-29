@@ -1,0 +1,12 @@
+{
+  "manifest_version": 2,
+  "name": "AssignTeacher",
+  "version": "1",
+  "permissions": ["unlimitedStorage"],
+  "app": {
+    "background": {
+      "scripts": ["chrome.js"]
+    }
+  },
+  "minimum_chrome_version": "23"
+}
