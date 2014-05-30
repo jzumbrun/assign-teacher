@@ -2,7 +2,14 @@
   "manifest_version": 2,
   "name": "AssignTeacher",
   "version": "1",
-  "permissions": ["unlimitedStorage"],
+  "permissions": ["unlimitedStorage","storage", 
+                  {"fileSystem": ["write", "retainEntries", "directory"]}],
+  "any": {
+    "extensions": [
+      "*"
+    ],
+    "title": "Any file type editor"
+  },
   "app": {
     "background": {
       "scripts": ["chrome.js"]

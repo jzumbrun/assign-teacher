@@ -47,7 +47,7 @@ app.directive('dirImport', ['imports', function(imports) {
 			element.ondragend = function () { this.className = ''; return false; };
 			element.ondrop = function (e) {
 				e.preventDefault();
-				imports[attrs.dirImport](e.dataTransfer.files[0].path)
+				imports[attrs.dirImport](e.dataTransfer)
 				.then(function(data){
 					scope.import = data;
 					scope.save();

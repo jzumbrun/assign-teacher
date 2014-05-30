@@ -31,10 +31,8 @@ app.controller('MembersController', ['$scope','$routeParams','$config','$locatio
 			// import
 			if($scope.import && $scope.import.length){
 				
-				Member.bulkCreate($scope.import).success(function() {
-					$scope.redirect("/members");
-				});
-
+				Member.import($scope.import);
+				$scope.redirect("/members");
 				$scope.set('import', []);
 			}
 			// relations
@@ -165,24 +163,14 @@ app.controller('MembersController', ['$scope','$routeParams','$config','$locatio
 
 		$scope.table = function(options){
 			options = options || {};
-			$scope.set('members', []); // keep here
+			$scope.set('members', Member().get()); // keep here
 
-			Member.table(options)
-			.then(function(members) {
-				if(members.length){
-					$scope.$apply(function() {
-						members.forEach(function(member){
-							$scope.members.push(member.dataValues);
-						});
-					});
-				}
-				else if(!angular.isUndefined(options.search)){
-					$scope.setApply('members', []);
-				}
-				else {
-					$scope.redirect("/members/import");
-				}
-			});
+			if(!$scope.members.length && !angular.isUndefined(options.search)){
+				$scope.set('members', []);
+			}
+			else if(!$scope.members.length) {
+				$scope.redirect("/members/import");
+			}
 		};
 	}
 ]);
