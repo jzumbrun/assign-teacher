@@ -5,7 +5,7 @@
  */
 chrome.app.runtime.onLaunched.addListener(function() {
   chrome.app.window.create('app/app.html', {
-    minWidth: 800,
-    minHeight: 800
+    minWidth: 600,
+    minHeight: 600
   });
 });

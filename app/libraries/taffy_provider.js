@@ -7,13 +7,11 @@ angular.module('taffy', []).
 function $taffyProvider(){
 
 		var self = this;
+		self.db = {};
 
-		self.getDB = function(){
-			return self.db;
-		};
+		self.getCollection = function($q,name){
 
-		self.load = function() {
-
+			self.name = name;
 				/*
 
 				 Software License Agreement (BSD License)
@@ -1196,6 +1194,7 @@ function $taffyProvider(){
 								RC = 1,
 								settings = {
 									template          : false,
+									allowNull        : true,
 									onInsert          : false,
 									onUpdate          : false,
 									onRemove          : false,
@@ -1292,13 +1291,15 @@ function $taffyProvider(){
 											settings.onDBChange.call( TOb );
 										}, 0 );
 									}
-									if ( settings.storageName ){
+									if ( self.name ){
 										setTimeout( function () {
 											if(chrome){
-												chrome.storage.local.set({data: TOb } );
+												console.log('update storage')
+												var data = {}; data[self.name] = TOb;
+												//chrome.storage.local.set(data);
 											}
 											else if(localStorage){
-												localStorage.setItem( 'taffy_' + settings.storageName,
+												localStorage.setItem( self.name,
 												JSON.stringify( TOb ) );
 											}
 
@@ -1353,7 +1354,10 @@ function $taffyProvider(){
 										v.___s = true;
 										records.push( v.___id );
 										if ( settings.template ){
-											v = T.mergeObj( settings.template, v );
+											v = T.mergeObj( settings.template, v, function(tv, ov){
+												if(!settings.allowNull && ov === null){ return tv; }
+												return ov;
+											});
 										}
 										TOb.push( v );
 
@@ -1387,7 +1391,7 @@ function $taffyProvider(){
 									// * Purpose: Update a record and change some or all values, call the on update method
 									// ****************************************
 
-									var nc = {}, or, nr, tc, hasChange;
+									var nc = {}, or, nr, tc;
 									if ( settings.forcePropertyCase ){
 										eachin( changes, function ( v, p ) {
 											nc[(settings.forcePropertyCase === 'lower') ? p.toLowerCase()
@@ -1401,22 +1405,14 @@ function $taffyProvider(){
 									nr = T.mergeObj( or, changes );
 
 									tc = {};
-									hasChange = false;
-									eachin( nr, function ( v, i ) {
-										if ( TAFFY.isUndefined( or[i] ) || or[i] !== v ){
-											tc[i] = v;
-											hasChange = true;
-										}
-									});
-									if ( hasChange ){
-										if ( settings.onUpdate &&
-											(runEvent || TAFFY.isUndefined( runEvent )) )
-										{
-											settings.onUpdate.call( nr, TOb[ID[id]], tc );
-										}
-										TOb[ID[id]] = nr;
-										DBI.dm( new Date() );
+
+									if ( settings.onUpdate &&
+										(runEvent || TAFFY.isUndefined( runEvent )) )
+									{
+										settings.onUpdate.call( nr, TOb[ID[id]], tc );
 									}
+									TOb[ID[id]] = nr;
+									DBI.dm( new Date() );
 								},
 								remove       : function ( id ) {
 									// ****************************************
@@ -1701,49 +1697,55 @@ function $taffyProvider(){
 							// *
 							// * These are the methods that can be accessed on off the root DB function. Example dbname.insert;
 							// **************************************** 
-							root.store = function ( n ) {
+							root.store = function () {
 								// ****************************************
 								// *
 								// * Setup localstorage for this DB on a given name
 								// * Pull data into the DB as needed
 								// **************************************** 
 								var r = false, i;
+								var deferred = $q.defer();
 
 								if(chrome){
-									if ( n ){
-										chrome.storage.local.get( {data: []}, function(i){
-											console.log(i);
+									if ( self.name ){
+										var data = {}; data[self.name] = [];
+										chrome.storage.local.get( data, function(i){
+											i = i[self.name]
 											if ( i && i.length > 0 ){
 												root.insert( i );
 												r = true;
 											}
+											deferred.resolve(i);
 										});
 										
 										if ( TOb.length > 0 ){
 											setTimeout( function () {
-												chrome.storage.local.set({data: TOb } );
+												console.log('import storage')
+												var data = {}; data[self.name] = TOb;
+												chrome.storage.local.set(data);
 											});
 										}
 									}
-									root.settings( {storageName : n} );
+									root.settings( {storageName : self.name} );
 								}
 								else if ( localStorage ){
-									if ( n ){
-										i = localStorage.getItem( 'taffy_' + n );
+									if ( self.name ){
+										i = localStorage.getItem( self.name );
 										if ( i && i.length > 0 ){
 											root.insert( i );
 											r = true;
 										}
+										deferred.resolve(i);
 										if ( TOb.length > 0 ){
 											setTimeout( function () {
-												localStorage.setItem( 'taffy_' + settings.storageName,
+												localStorage.setItem( self.name,
 													JSON.stringify( TOb ) );
 											});
 										}
 									}
-									root.settings( {storageName : n} );
+									root.settings( {storageName : self.name} );
 								}
-								return root;
+								return deferred.promise;
 							};
 
 							// ****************************************
@@ -1797,10 +1799,13 @@ function $taffyProvider(){
 						// * Purpose: Used to combine objs
 						// *
 						// ****************************************   
-						TAFFY.mergeObj = function ( ob1, ob2 ) {
+						TAFFY.mergeObj = function ( ob1, ob2, callback ) {
 							var c = {};
 							eachin( ob1, function ( v, n ) { c[n] = ob1[n]; });
-							eachin( ob2, function ( v, n ) { c[n] = ob2[n]; });
+							eachin( ob2, function ( v, n ) { 
+								if (callback){ c[n] = callback( c[n], ob2[n] );}
+								else{ c[n] = ob2[n];}
+							});
 							return c;
 						};
 
@@ -2056,17 +2061,14 @@ function $taffyProvider(){
 					exports.taffy = TAFFY;
 				}
 
-				self.db = TAFFY();
-				self.db.store('assignteachers');
+				self.db[self.name] = TAFFY();
+				return self.db[self.name];
 		};
 
-		self.$get = function() {
+		self.$get = function($q) {
 			return {
-				load: function() {
-					return self.load();
-				},
-				getDB: function(){
-					return self.getDB();
+				getCollection: function(name){
+					return self.getCollection($q,name);
 				}
 			};
 		};

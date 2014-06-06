@@ -4,10 +4,10 @@ var app = angular.module('app', [
   'config',
   'ngRoute',
   'taffy',
-  'ui-gravatar'
+  'history'
 ]);
 
-app.config(['$configProvider','$routeProvider', '$taffyProvider', function($configProvider, $routeProvider, $taffyProvider) {
+app.config(['$configProvider','$routeProvider', function($configProvider, $routeProvider) {
 
 	$routeProvider.
 		when('/', {
@@ -46,7 +46,4 @@ app.config(['$configProvider','$routeProvider', '$taffyProvider', function($conf
 
 	$routeProvider.
 		otherwise({redirectTo: '/'});
-
-	// load the database
-	$taffyProvider.load();
 }]);

@@ -2,9 +2,9 @@
 <table class="table scrollable" >
 	<tr ng-repeat="m in members" >
 		<td width="80px">
-			<gravatar-image gravatar-email="{{m.email}}" gravatar-object="m" gravatar-name="{{m.household}}" gravatar-size="70" ></gravatar-image>
+			<dir-block block-value="{{m.___id}}" block-name="{{m.household}}" block-size="70" ></dir-block>
 		</td>
-		<td class="text-v-center" ng-click="redirect('members/' + m.id + '/edit')">
+		<td class="text-v-center" ng-click="redirect('members/' + m.___id + '/edit')">
 			{{m.household}}</br>
 			{{m.phone}}</br>
 			{{m.email}}

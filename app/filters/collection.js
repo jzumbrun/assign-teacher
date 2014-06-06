@@ -10,5 +10,5 @@ app.filter('uri_segments', function($location) {
       return data[segment];
     }
     return false;
-  }
+  };
 });

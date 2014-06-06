@@ -2,8 +2,8 @@
  * AppController
  *
  */
-app.controller('AppController', ['$rootScope','$scope','$route','$config','$location', '$timeout',
-	function ($rootScope, $scope, $route, $config, $location, $timeout) {
+app.controller('AppController', ['$rootScope','$scope','$route','$config', '$timeout','$history',
+	function ($rootScope, $scope, $route, $config, $timeout, $history) {
 
 		/* Redirect
 		 * Redirect to another route
@@ -13,11 +13,17 @@ app.controller('AppController', ['$rootScope','$scope','$route','$config','$loca
 			// defalt we load route content
 			$timeout(function(){
 				$scope.$apply(function() {
-
-					console.log('route',route);
-					$location.path(route);
+					$history.pushState(route);
 				});
 			}, 0);
+		};
+
+		/* Reload
+		 * Reload the route
+		 *
+		 */
+		$scope.reload = function() {
+			$route.reload();
 		};
 
 		/* Set
@@ -75,6 +81,19 @@ app.controller('AppController', ['$rootScope','$scope','$route','$config','$loca
 			return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 		};
 
+		Object.defineProperty(Array.prototype, "remove", {
+			enumerable: false,
+			value: function (remove) {
+				this.splice( this.indexOf(remove), 1 );
+			}
+		});
+
+		Object.defineProperty(Array.prototype, "exists", {
+			enumerable: false,
+			value: function (exists) {
+				return this.indexOf(exists) > -1;
+			}
+		});
 	}
 
 ]);
