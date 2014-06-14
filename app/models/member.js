@@ -1,14 +1,16 @@
 'use strict';
 
-app.factory('Member', ['$taffy', '$q', function($taffy, $q){
+app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
+	function($taffy, $q, geolib, Visit){
 
 	var members = function(){
 		var self = this;
-		self.db = $taffy.getCollection('members');
+		self.db = $taffy.db();
 
 		self.undefineds = ['household'];
 		
 		self.db.settings({
+			name:'members',
 			template:{
 				first_name: '',
 				last_name: '',
@@ -105,27 +107,58 @@ app.factory('Member', ['$taffy', '$q', function($taffy, $q){
 			}
 		};
 
-		self.get = function(id){
-
-			// search
-			if(angular.isObject(id)){
-				var deferred = $q.defer();
-				deferred.resolve(self.db(id).get());
-				return deferred.promise;
-			}
+		self.get = function(query,record){
+			var deferred, get;
 			// single id
-			else if(id){
-				return self.db(id).first();
+			if(angular.isString(query)){
+				return self.db(query).first();
 			}
-			// initial request on app load
 			else{
-				var deferred = $q.defer();
-				var get = self.db().get();
+				deferred = $q.defer();
+
+				// assignments
+				if(angular.isObject(record) && record.___id){
+
+					// query on assignments
+					if(angular.isObject(query)){
+						// dont include the current record
+						query = jQuery.extend({}, {___id:{'!is' : record.___id}}, query);
+					}
+					console.log('im in');
+					get = self.db(query).each(function(rec){
+						// defult get distance between members
+						if(!isNaN(parseInt(rec.latitude, 10)) && !isNaN(parseInt(rec.longitude, 10))){
+							var distance = geolib.getDistance(
+								{latitude: record.latitude, longitude: record.longitude},
+								{latitude: rec.latitude, longitude: rec.longitude}
+							);
+							rec.distance = geolib.convertUnit('mi', rec.distance, 1);
+						}
+
+						if(!rec.distance && rec.distance !== 0){
+							// one million -- means unset
+							rec.distance = 1000000;
+						}
+
+					}).order('distance asec').get();
+
+				}
+				// just a query
+				else if(angular.isObject(query)){
+					console.log('im in1');
+					get = self.db(query).order('household asec').get();
+				}
+				// all records
+				else{
+					console.log('im in2');
+					get = self.db().order('household asec').get();
+				}
 
 				// see if we have records in the localStorage
 				if(!get.length){
-					self.db.store().then(function(get){
-						deferred.resolve(get);
+					console.log('im in3');
+					self.db.store().then(function(db){
+						deferred.resolve(db().order('household asec').get());
 					});
 				}else{
 					deferred.resolve(get);
@@ -195,6 +228,17 @@ app.factory('Member', ['$taffy', '$q', function($taffy, $q){
 			}
 
 			return teachers;
+		};
+
+		self.getVisits = function(record){
+			var visits = [],
+			deferred = $q.defer();
+
+			Visit.get({member_id: record.___id}).then(function(visits){
+				deferred.resolve(visits);
+			});
+
+			return deferred.promise;
 		};
 	};
 

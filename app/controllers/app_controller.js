@@ -2,8 +2,8 @@
  * AppController
  *
  */
-app.controller('AppController', ['$rootScope','$scope','$route','$config', '$timeout','$history',
-	function ($rootScope, $scope, $route, $config, $timeout, $history) {
+app.controller('AppController', ['$rootScope','$scope','$route','$config', '$timeout','$history', '$location',
+	function ($rootScope, $scope, $route, $config, $timeout, $history, $location) {
 
 		/* Redirect
 		 * Redirect to another route
@@ -13,7 +13,13 @@ app.controller('AppController', ['$rootScope','$scope','$route','$config', '$tim
 			// defalt we load route content
 			$timeout(function(){
 				$scope.$apply(function() {
-					$history.pushState(route);
+
+					if(route == 'back'){
+						$history.back();
+					}else{
+						$location.path(route);
+					}
+					
 				});
 			}, 0);
 		};
@@ -71,14 +77,6 @@ app.controller('AppController', ['$rootScope','$scope','$route','$config', '$tim
 				return $route.current['partial'];
 			}
 			return $config.template(partial + '.html');
-		};
-
-		/* Capitalize
-		 * Capitalize first letter
-		 *
-		 */
-		$scope.capitalize = function(string) {
-			return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 		};
 
 		Object.defineProperty(Array.prototype, "remove", {

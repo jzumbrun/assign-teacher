@@ -102,6 +102,24 @@
 				</tr>
 			</table>
 		</div>
+
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">Visits </div>
+			<div dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/'+ member.___id +'/visits/add')"></div>
+			<table class="table scrollable" >
+				<tr ng-repeat="visit in visits" ng-click="redirect('/members/'+ member.___id +'/visits/'+ visit.___id +'/edit')">
+					<td width="80px">
+						<dir-block block-name="{{visit.date | date : MMM}}" block-size="70" ></dir-block>
+					</td>
+					<td class="text-v-center">
+						{{visit.date | date : 'MMM yyyy'}}</br>
+						{{visit.type | capitalize }}</br>
+						{{visit.note | truncate:true:50}}
+					</td>
+				</tr>
+			</table>
+		</div>
 	</div>
 
 </div>

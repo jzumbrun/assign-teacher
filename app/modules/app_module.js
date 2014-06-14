@@ -4,11 +4,12 @@ var app = angular.module('app', [
   'config',
   'ngRoute',
   'taffy',
-  'history'
+  'history',
+  'ui.bootstrap'
 ]);
 
 app.config(['$configProvider','$routeProvider', function($configProvider, $routeProvider) {
-
+	
 	$routeProvider.
 		when('/', {
 			controller: 'MembersController',
@@ -42,6 +43,20 @@ app.config(['$configProvider','$routeProvider', function($configProvider, $route
 			controller: 'MembersController',
 			method: 'assign',
 			templateUrl: $configProvider.template('members/assign.html'),
+		});
+
+	$routeProvider.
+		when('/members/:member_id/visits/add', {
+			controller: 'VisitsController',
+			method: 'add',
+			templateUrl: $configProvider.template('visits/form.html'),
+		});
+
+	$routeProvider.
+		when('/members/:member_id/visits/:id/edit', {
+			controller: 'VisitsController',
+			method: 'edit',
+			templateUrl: $configProvider.template('visits/form.html'),
 		});
 
 	$routeProvider.

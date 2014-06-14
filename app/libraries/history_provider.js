@@ -11,11 +11,12 @@ function $historyProvider(){
 	self.back = function($location) {
 
 		if(self.state.length){
+			console.log('back', self.state);
 			
 			// check is previous is actually the current url
 			var previous = self.state[self.state.length-1];
 
-			if('/'+ previous == $location.url()){
+			if(previous == $location.url()){
 				previous = self.state.pop();
 			}
 			
@@ -32,24 +33,26 @@ function $historyProvider(){
 		}
 	};
 
-	self.pushState = function($location,url) {
-			self.state.push(url);
-			if(url == '/'){ // if root clear states
-				self.state = [];
-			}
-			console.log('push',url);
-			$location.path(url);
+	self.pushState = function(url) {
+		console.log('pushState', url);
+		
+		self.state.push(url);
+		if(url == '/'){ // if root clear states
+			self.state = [];
+		}
 	};
 
-	self.$get = function($location) {
-			return {
-				back: function() {
-					return self.back($location);
-				},
-				pushState: function(url) {
-					return self.pushState($location,url);
-				}
-			};
+	self.$get = function($rootScope, $location) {
+
+		$rootScope.$on('$locationChangeSuccess', function(event) {
+			self.pushState($location.url());
+		});
+
+		return {
+			back: function() {
+				return self.back($location);
+			}
+		};
 	};
 
 }

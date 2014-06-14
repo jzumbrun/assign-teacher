@@ -2,13 +2,14 @@
  * MembersController
  *
  */
-app.controller('MembersController', ['$scope','$routeParams','$config','$location','$filter','Member',
-	function ($scope, $routeParams, $config, $location, $filter, Member) {
+app.controller('MembersController', ['$scope','$routeParams','$filter','Member',
+	function ($scope, $routeParams, $filter, Member) {
 
 		var self = this;
 
 		$scope.index = function(){
 			$scope.setRoot('title', 'Members');
+			$scope.member = {};
 			$scope.table();
 		};
 
@@ -25,7 +26,7 @@ app.controller('MembersController', ['$scope','$routeParams','$config','$locatio
 			// import
 			if($scope.import && $scope.import.length){
 				Member.insert($scope.import);
-				$scope.redirect('/members');
+				$scope.redirect('back');
 			}
 			// update
 			else if($scope.member.___id){
@@ -33,17 +34,17 @@ app.controller('MembersController', ['$scope','$routeParams','$config','$locatio
 				Member.update( $scope.member );
 
 				if($scope.relation){
-					Member['set' + $scope.capitalize($scope.relation)]($scope.member, $scope.selected);
-					$scope.redirect('/members/' + $scope.member.___id + '/edit');
+					Member['set' + $filter('capitalize')($scope.relation)]($scope.member, $scope.selected);
+					$scope.redirect('back');
 				}
 				else{
-					$scope.redirect('/members');
+					$scope.redirect('back');
 				}
 			}
 			// add
 			else{
 				Member.insert($scope.member);
-				$scope.redirect('/members');
+				$scope.redirect('back');
 			}
 
 		};
@@ -66,19 +67,30 @@ app.controller('MembersController', ['$scope','$routeParams','$config','$locatio
 			$scope.families = Member.getFamilies($scope.member);
 			$scope.teachers = Member.getTeachers($scope.member);
 			$scope.companions = Member.getCompanions($scope.member);
+			Member.getVisits($scope.member).then(function(visits){
+				$scope.visits = visits;
+				console.log('visits in eidt member',visits)
+			});
+		};
+
+		$scope.open = function($event) {
+			console.log();
+			$event.preventDefault();
+			$event.stopPropagation();
+			$scope.opened = true;
 		};
 
 		$scope.assign = function(){
-			$scope.setRoot('title', 'Assign ' + $scope.capitalize($routeParams.type));
+			$scope.setRoot('title', 'Assign ' + $filter('capitalize')($routeParams.type));
 			$scope.relation = $routeParams.type;
 			$scope.member = Member.get($routeParams.id);
-			$scope.selected = Member['get' + $scope.capitalize($scope.relation)]($scope.member, '___id');
+			$scope.selected = Member['get' + $filter('capitalize')($scope.relation)]($scope.member, '___id');
 			$scope.table();
 		};
 
 		$scope.delete = function(){
 			Member.remove($scope.member);
-			$scope.redirect('/members');
+			$scope.redirect('back');
 		};
 
 		$scope.table = function(options){
@@ -108,7 +120,7 @@ app.controller('MembersController', ['$scope','$routeParams','$config','$locatio
 				return; // return void
 			};
 
-			Member.get(query())
+			Member.get(query(), $scope.member)
 			.then(function(members){
 				console.log('members', members);
 				//Member.remove();
