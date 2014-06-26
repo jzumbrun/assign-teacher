@@ -3,5 +3,4 @@ node_js:
   - '0.10'
 before_install:
   - 'npm install -g karma-cli'
-before_script:
-  - 'npm update'
+install: true
