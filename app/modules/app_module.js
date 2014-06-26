@@ -2,14 +2,15 @@
 ////////////////////// START APP //////////////////////
 var app = angular.module('app', [
   'config',
-  'ngResource',
   'ngRoute',
-  'sequelize',
-  'ui-gravatar'
+  'taffy',
+  'history',
+  'ui.bootstrap',
+  'ngTagsInput'
 ]);
 
-app.config(['$configProvider','$routeProvider','$sequelizeProvider', function($configProvider, $routeProvider, $sequelizeProvider) {
-
+app.config(['$configProvider','$routeProvider', function($configProvider, $routeProvider) {
+	
 	$routeProvider.
 		when('/', {
 			controller: 'MembersController',
@@ -46,8 +47,19 @@ app.config(['$configProvider','$routeProvider','$sequelizeProvider', function($c
 		});
 
 	$routeProvider.
-		otherwise({redirectTo: '/'});
+		when('/members/:member_id/visits/add', {
+			controller: 'VisitsController',
+			method: 'add',
+			templateUrl: $configProvider.template('visits/form.html'),
+		});
 
-	// load the database
-	$sequelizeProvider.load();
+	$routeProvider.
+		when('/members/:member_id/visits/:id/edit', {
+			controller: 'VisitsController',
+			method: 'edit',
+			templateUrl: $configProvider.template('visits/form.html'),
+		});
+
+	$routeProvider.
+		otherwise({redirectTo: '/'});
 }]);

@@ -2,8 +2,8 @@
  * AppController
  *
  */
-app.controller('AppController', ['$rootScope','$scope','$route','$config','$location', '$timeout',
-	function ($rootScope, $scope, $route, $config, $location, $timeout) {
+app.controller('AppController', ['$rootScope','$scope','$route','$config', '$timeout','$history', '$location',
+	function ($rootScope, $scope, $route, $config, $timeout, $history, $location) {
 
 		/* Redirect
 		 * Redirect to another route
@@ -14,10 +14,22 @@ app.controller('AppController', ['$rootScope','$scope','$route','$config','$loca
 			$timeout(function(){
 				$scope.$apply(function() {
 
-					console.log('route',route);
-					$location.path(route);
+					if(route == 'back'){
+						$history.back();
+					}else{
+						$location.path(route);
+					}
+					
 				});
 			}, 0);
+		};
+
+		/* Reload
+		 * Reload the route
+		 *
+		 */
+		$scope.reload = function() {
+			$route.reload();
 		};
 
 		/* Set
@@ -67,14 +79,19 @@ app.controller('AppController', ['$rootScope','$scope','$route','$config','$loca
 			return $config.template(partial + '.html');
 		};
 
-		/* Capitalize
-		 * Capitalize first letter
-		 *
-		 */
-		$scope.capitalize = function(string) {
-			return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-		};
+		Object.defineProperty(Array.prototype, "remove", {
+			enumerable: false,
+			value: function (remove) {
+				this.splice( this.indexOf(remove), 1 );
+			}
+		});
 
+		Object.defineProperty(Array.prototype, "exists", {
+			enumerable: false,
+			value: function (exists) {
+				return this.indexOf(exists) > -1;
+			}
+		});
 	}
 
 ]);

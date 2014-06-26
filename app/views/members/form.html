@@ -1,5 +1,5 @@
 <div class="col-lg-12" ng-method>
-	<div dir-master-actions="[{click: 'save()'},{click: 'delete()', icon: 'remove', type: 'danger', condition : 'member.id'}]"></div>
+	<div dir-master-actions="[{click: 'makeSenior()', classes: 'space', icon: 'user', if : 'member.___id', type : member.is_senior ? 'primary' : 'grey'},{click: 'save()'}, {click: 'delete()', icon: 'remove', type: 'danger', if : 'member.___id'}]"></div>
 
 	<div id="main" class="scrollable">
 		<form role="form">
@@ -8,18 +8,15 @@
 					ng-model="member.household" >
 			</div>
 
-
 			<div class="form-group">
 				<input type="text" class="form-control" id="member_street" placeholder="Street"
 					ng-model="member.street">
 			</div>
 
-
 			<div class="form-group">
 				<input type="text" class="form-control" id="member_city" placeholder="City"
 					ng-model="member.city">
 			</div>
-
 
 			<div class="form-group">
 				<input type="text" class="form-control" id="member_state" placeholder="State"
@@ -42,19 +39,48 @@
 			</div>
 
 			<div class="form-group">
-				<textarea class="form-control" id="member_note"
+				<input type="checkbox" id="member_hide"
+					ng-model="member.hide">
+				<label>Hide</label>
+			</div>
+
+			<div class="form-group">
+				<textarea class="form-control" id="member_note" placeholder="Notes..."
 					ng-model="member.note"></textarea>
+			</div>
+			<div class="form-group">
+				<tags-input ng-model="member.tags">
+					<auto-complete source="tags($query)"></auto-complete>
+				</tags-input>
 			</div>
 		</form>
 
 		<div class="panel panel-default">
 			<!-- Default panel contents -->
-			<div class="panel-heading">Companions</div>
-			<div dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/' + member.id + '/assign/companions')"></div>
+			<div class="panel-heading">Families </div>
+			<div ng-if="member.is_senior" dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/' + member.___id + '/assign/families')"></div>
 			<table class="table scrollable" >
-				<tr ng-repeat="companion in companions" ng-click="redirect('members/' + companion.id + '/edit')">
+				<tr ng-repeat="family in families" ng-click="redirect('members/' + family.___id + '/edit')">
 					<td width="80px">
-						<gravatar-image gravatar-email="{{companion.email}}" gravatar-object="companion" gravatar-name="{{companion.household}}" gravatar-size="70" ></gravatar-image>
+						<dir-block block-name="{{family.household}}" block-size="70" ></dir-block>
+					</td>
+					<td class="text-v-center">
+						{{family.household}}</br>
+						{{family.phone}}</br>
+						{{family.email}}
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">Companions</div>
+			<div ng-if="member.is_senior" dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/' + member.___id + '/assign/companions')"></div>
+			<table class="table scrollable" >
+				<tr ng-repeat="companion in companions" ng-click="redirect('members/' + companion.___id + '/edit')">
+					<td width="80px">
+						<dir-block block-name="{{companion.household}}" block-size="70" ></dir-block>
 					</td>
 					<td class="text-v-center">
 						{{companion.household}}</br>
@@ -67,17 +93,34 @@
 
 		<div class="panel panel-default">
 			<!-- Default panel contents -->
-			<div class="panel-heading">Families </div>
-			<div dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/' + member.id + '/assign/families')"></div>
+			<div class="panel-heading">Teachers </div>
 			<table class="table scrollable" >
-				<tr ng-repeat="family in families" ng-click="redirect('members/' + family.id + '/edit')">
+				<tr ng-repeat="teacher in teachers" ng-click="redirect('members/' + teacher.___id + '/edit')">
 					<td width="80px">
-						<gravatar-image gravatar-email="{{family.email}}" gravatar-object="family" gravatar-name="{{family.household}}" gravatar-size="70" ></gravatar-image>
+						<dir-block block-name="{{teacher.household}}" block-size="70" ></dir-block>
 					</td>
 					<td class="text-v-center">
-						{{family.household}}</br>
-						{{family.phone}}</br>
-						{{family.email}}
+						{{teacher.household}}</br>
+						{{teacher.phone}}</br>
+						{{teacher.email}}
+					</td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="panel panel-default">
+			<!-- Default panel contents -->
+			<div class="panel-heading">Visits </div>
+			<div dir-button="{icon: 'plus-sign'}" class="table-header-actions" ng-click="redirect('members/'+ member.___id +'/visits/add')"></div>
+			<table class="table scrollable" >
+				<tr ng-repeat="visit in visits" ng-click="redirect('/members/'+ member.___id +'/visits/'+ visit.___id +'/edit')">
+					<td width="80px">
+						<dir-block block-name="{{visit.date | date : MMM}}" block-size="70" ></dir-block>
+					</td>
+					<td class="text-v-center">
+						{{visit.date | date : 'MMM yyyy'}}</br>
+						{{visit.type | capitalize }}</br>
+						{{visit.note | truncate:true:50}}
 					</td>
 				</tr>
 			</table>

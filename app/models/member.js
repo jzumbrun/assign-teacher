@@ -1,136 +1,283 @@
 'use strict';
 
-// angular access to nodejs model
-if(typeof angular != 'undefined'){
-	app.factory('Member', ['$sequelize', function($sequelize){
-		return $sequelize.getModel('Member');
-	}]);
-}
-// nodejs model
-else{
-	module.exports = function(sequelize, DataTypes) {
-		var Member = sequelize.define('Member', {
-			id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-			household: DataTypes.STRING(256),
-			first_name: DataTypes.STRING(128),
-			last_name: DataTypes.STRING(128),
-			longitude: DataTypes.FLOAT(3,10),
-			latitude: DataTypes.FLOAT(3,10),
-			street: DataTypes.STRING(60),
-			city: DataTypes.STRING(60),
-			state: DataTypes.STRING(60),
-			zip: DataTypes.STRING(30),
-			phone: DataTypes.STRING(20),
-			email: DataTypes.STRING(256),
-			location_status: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false},
-			hidden: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true},
-			senior: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false},
-			note: DataTypes.TEXT
+app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
+	function($taffy, $q, geolib, Visit){
 
-		},{
-			tableName: 'members',
-			underscored: true,
-			timestamps: true,
-			freezeTableName: true,
-			classMethods: {
-				associate: function(models) {
-					var self = this;
-					self.hasMany(self,{as: 'Families', through: 'assignments'})
-						.hasMany(self,{as: 'Teachers', foreignKey: 'families_id', through: 'assignments'})
-						.hasMany(self,{as: 'Companions', through: 'companions'})
-						.hasMany(models.Visit);
-				},
-				table: function(options){
-					var self = this,
-					find_options = {hidden: false};
+	var members = function(){
+		var self = this;
+		self.db = $taffy.db();
 
-					self.parseSearch = function(find_options){
-						
-						var default_field = 'household',
-						fields = Object.keys(self.rawAttributes),
-						values = [],
-						conditions = ['=', '>','<', '!=', '-'];
-
-						if(!options.search){
-							return find_options;
-						}
-
-						// get operators
-						var search_operators = options.search.match(/\S[^: ]*:/g);
-						
-						// set default operator
-						if(!search_operators){
-							search_operators = [default_field + ':'];
-						}
-
-						// get values
-						options.search.split(/\S*:/).forEach(function(value){
-							if(value !== ''){
-								value = value.trim();
-								if(value == '-'){ value = false; } // - means empty or false
-								values.push(value);
-							}
-						});
-
-						search_operators.forEach(function(field, index){
-	
-							field = field.toLowerCase().substring(0, field.length -1); // lowercase and remove the :
-
-							var condition = 'LIKE';
-							if(field.charAt(0).match(/[^a-z]/)){
-								condition = field.charAt(0);
-								field = field.substring(1); // remove the condition
-							}
-
-							// set fields
-							if(fields.indexOf(field) > -1) {
-								if(!find_options.where){ find_options.where = ''; }
-
-								if(condition == '-'){ condition = '!='; }
-
-								if(conditions.indexOf(condition) > -1){
-									find_options.where += field + " " + condition + " '" + values[index] + "'";
-								}
-								else if(!values[index]){
-									find_options.where += field + " = '' OR "+ field +" IS NULL OR "+ field +" = 0";
-								}
-								else{
-									find_options.where += field + " LIKE '%" + values[index] + "%'";
-								}
-
-								find_options.where += ' AND ';
-
-							}
-							// order
-							else if(field == 'order'){
-								if(condition == '-'){
-									find_options.order = values[index] + ' DESC';
-								}
-								else{
-									find_options.order = values[index];
-								}
-								
-							}
-						});
-						
-						// remove the and
-						if(find_options.where && find_options.where.substring(find_options.where.length - 4) == 'AND '){
-							find_options.where = find_options.where.substring(0, find_options.where.length - 5);
-						}
-
-						return find_options;
-					};
-
-					find_options = self.parseSearch(find_options);
-
-					console.log(find_options);
-
-					return self.findAll(find_options);
-					
-				}
+		self.undefineds = ['household'];
+		
+		self.db.settings({
+			name:'members',
+			allowNull : false,
+			template:{
+				first_name: '',
+				last_name: '',
+				city: '',
+				email: '',
+				household: '',
+				latitude: '',
+				location_status: '',
+				longitude: '',
+				phone: '',
+				state: '',
+				street: '',
+				zip: '',
+				hide: false,
+				is_senior: false,
+				senior: '',
+				teacher: '',
+				note: '',
+				tags: ''
 			}
 		});
 
-		return Member;
+		var undefineds = function(record){
+			self.undefineds.forEach(function(u){
+				if(angular.isUndefined(record[u])){
+					return null;
+				}
+			});
+			return record;
+		};
+
+		self.insert = function(record){
+			// import
+			if(angular.isArray(record) && record.length){
+				console.log(record);
+				record.forEach(function(rec, index){
+					record[index] = undefineds(rec);
+					if(!record[index]){
+						delete record[index];
+					}
+				});
+
+				self.db.insert(record);
+			}
+			else if(angular.isObject(record)){
+				self.db.insert(record);
+			}
+		};
+
+		self.update = function(record, callback){
+			console.log('update', record, callback);
+
+			if(angular.isFunction(callback)){
+				// "record" is the query now
+				self.db(record).update(callback);
+			}else{
+				self.db(record.___id).update(record);
+			}
+		};
+
+		self.setFamilies = function(record, families){
+			if(angular.isArray(families)){
+
+				// remove all the things
+				self.db({teacher:record.___id}).update({teacher:''});
+
+				// add all the things
+				families.forEach(function(family){
+					self.db({___id:family}).update({teacher: record.___id});
+				});
+			}
+
+		};
+
+		self.setCompanions = function(record, companions){
+			if(angular.isArray(companions)){
+
+				// remove all the things
+				self.db({senior:record.___id}).update({senior:''});
+
+				// add all the things
+				companions.forEach(function(companion){
+					self.db({___id:companion}).update({senior: record.___id});
+				});
+			}
+
+		};
+
+		self.remove = function(record){
+			if(record){
+				self.db(record.___id).remove();
+			}
+			else{
+				self.db().remove();
+			}
+		};
+
+		self.get = function(query,record){
+			var deferred, get;
+			// single id
+			if(angular.isString(query)){
+				return self.db(query).first();
+			}
+			else{
+				deferred = $q.defer();
+				// assignments
+				if(angular.isObject(record) && record.___id){
+
+					// query on assignments
+					if(angular.isObject(query)){
+						// dont include the current record
+						query = jQuery.extend({}, {___id:{'!is' : record.___id}}, query);
+					}
+					console.log('im in');
+					get = self.db(query).each(function(rec){
+						// defult get distance between members
+						if(!isNaN(parseInt(rec.latitude, 10)) && !isNaN(parseInt(rec.longitude, 10))){
+							var distance = geolib.getDistance(
+								{latitude: record.latitude, longitude: record.longitude},
+								{latitude: rec.latitude, longitude: rec.longitude}
+							);
+							rec.distance = geolib.convertUnit('mi', rec.distance, 1);
+						}
+
+						if(!rec.distance && rec.distance !== 0){
+							// one million -- means unset
+							rec.distance = 1000000;
+						}
+
+					}).order('distance asec').get();
+
+				}
+				// just a query
+				else if(angular.isObject(query)){
+					console.log('im in1',query);
+
+					get = self.db(query).order('household asec').get();
+				}
+				// all records
+				else{
+					console.log('im in2');
+					get = self.db().order('household asec').get();
+				}
+
+				// see if we have records in the localStorage
+				if(!query && !get.length){
+					console.log('im in3');
+					self.db.store().then(function(db){
+						deferred.resolve(db().order('household asec').get());
+					});
+				}else{
+					deferred.resolve(get);
+				}
+
+				return deferred.promise;
+			}
+		};
+
+		// relations
+		self.getFamilies = function(record,select){
+			var id = record.___id,
+			families = [];
+			// if this memeber is not a senior companion see if he has a senior
+			// and set the senior as the
+			if(!record.is_senior && record.senior !== ''){
+				id = record.senior;
+			}
+
+			if(select){
+				return self.db({teacher:id}).select(select);
+			}else{
+				families = self.db({teacher:id}).get();
+			}
+
+			return families;
+		};
+
+		self.getCompanions = function(record,select){
+
+			var companions = [],
+			query = {senior:record};
+
+			if(angular.isObject(record)){
+				query.senior = record.___id;
+
+				// if this memeber is not a senior companion see if he has a senior
+				// and set the senior as the
+				if(!record.is_senior && record.senior !== ''){
+					query = [
+						{
+							senior: record.senior, // include companion of the senior
+							___id:{'!is' : record.___id} // but dont include the current record
+						},
+						{___id: record.senior} // also include the senior record itself
+					];
+				}
+			}
+
+			if(select){
+				return self.db(query).select(select);
+			}else{
+				companions = self.db(query).get();
+			}
+
+			return companions;
+		};
+
+		self.getTeachers = function(record){
+			var teachers = []
+			if(record.teacher !== ''){
+				self.getCompanions(record.teacher).forEach(function(teacher){
+					teachers.push(teacher);
+				});
+
+				teachers.push(self.db(record.teacher).first());
+			}
+
+			return teachers;
+		};
+
+		self.getVisits = function(record){
+			var visits = [],
+			deferred = $q.defer();
+
+			Visit.get({member_id: record.___id}).then(function(visits){
+				deferred.resolve(visits);
+			});
+
+			return deferred.promise;
+		};
+
+		self.getTags = function(query){
+
+			// default tags
+			var all_tags = ['elder', 'sister', 'focus', 'less-active'],
+			tags = [],
+			deferred = $q.defer();
+
+			// get all tags from the db
+			self.db().select('tags').forEach(function(record_tags){
+				if(record_tags.length){
+					record_tags.forEach(function(record_tag){
+						if(record_tag.text){
+							all_tags.push(record_tag.text);
+						}
+					});
+				}
+				
+			});
+
+			// unique them
+			tags = jQuery.grep(tags, function(v, k){
+				return jQuery.inArray(v ,tags) === k;
+			});
+
+			// query them
+			all_tags.forEach(function(tag){
+				if(tag.indexOf(query) > -1){
+					tags.push(tag);
+				}
+			});
+
+			deferred.resolve(tags);
+			return deferred.promise;
+		};
 	};
-}
+
+	return new members();
+}]);

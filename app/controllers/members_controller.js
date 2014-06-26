@@ -2,184 +2,139 @@
  * MembersController
  *
  */
-app.controller('MembersController', ['$scope','$routeParams','$config','$location','Member',
-	function ($scope, $routeParams, $config, $location, Member) {
+app.controller('MembersController', ['$scope','$routeParams','$filter','Member',
+	function ($scope, $routeParams, $filter, Member) {
 
 		var self = this;
 
 		$scope.index = function(){
 			$scope.setRoot('title', 'Members');
-			$scope.set('members', []);
-			$scope.set('import', []);
+			$scope.member = {};
 			$scope.table();
 		};
 
 		$scope.add = function(){
 			$scope.setRoot('title', 'Add Member');
-			$scope.set('members', []);
-			$scope.set('import', []);
 		};
 
 		$scope.import = function(){
 			$scope.setRoot('title', 'Import Members');
-			$scope.set('members', []);
-			$scope.set('import', []);
 		};
 
 		$scope.save = function(){
 
 			// import
 			if($scope.import && $scope.import.length){
-				
-				Member.bulkCreate($scope.import).success(function() {
-					$scope.redirect("/members");
-				});
-
-				$scope.set('import', []);
-			}
-			// relations
-			else if(angular.isArray($scope.members)){
-				Member.find({ id : $scope.member.id })
-				.then(function(member){
-
-					var selected = [];
-					$scope.members.forEach(function(mem){
-						if(mem.selected){ selected.push(mem.id); }
-					});
-
-					if(selected.length){
-						Member.findAll({where: {id: {in: selected}}})
-						.then(function(relations){
-							console.log('relations',relations);
-							member['set' + $scope.relation](relations)
-							.then(function(rels){
-								$scope.redirect('/members/' + member.id + '/edit');
-							});
-						});
-					}
-					else{
-						member['set' + $scope.relation](null)
-						.then(function(rels){
-							$scope.redirect('/members/' + member.id + '/edit');
-						});
-					}
-				});
+				Member.insert($scope.import);
+				$scope.redirect('back');
 			}
 			// update
-			else if($scope.member.id){
-				Member.update( $scope.member, { id : $scope.member.id })
-				.then(function(member) {
-					$scope.redirect("/members");
-				});
+			else if($scope.member.___id){
+				console.log('update',$scope.member);
+				Member.update( $scope.member );
 
+				if($scope.relation){
+					Member['set' + $filter('capitalize')($scope.relation)]($scope.member, $scope.selected);
+					$scope.redirect('back');
+				}
+				else{
+					$scope.redirect('back');
+				}
 			}
 			// add
 			else{
-				Member.build($scope.member).save()
-				.success(function(member){
-					$scope.redirect("/members");
-				});
+				Member.insert($scope.member);
+				$scope.redirect('back');
 			}
 
+		};
+
+		$scope.makeSenior = function(){
+			// inverse the seniority
+			$scope.member.is_senior = !$scope.member.is_senior;
+			// check for other companions etc
+			// exchange ownership of families
+			// and companions, etc
+
+			Member.update( $scope.member );
+
+			$scope.reload();
 		};
 
 		$scope.edit = function(){
 			$scope.setRoot('title', 'Edit Member');
-			$scope.families = [];
-			$scope.companions = [];
-			Member.find({ where: { id : parseInt($routeParams.id,10) } })
-			.then(function(member) {
-				$scope.set('member',member.dataValues, true);
-
-				// families
-				member.getFamilies()
-				.then(function(families){
-					$scope.$apply(function() {
-						families.forEach(function(family){
-							$scope.families.push(family.dataValues);
-						});
-					});
-				});
-
-				member.getCompanions()
-				.then(function(companions){
-					$scope.$apply(function() {
-						companions.forEach(function(companion){
-							$scope.companions.push(companion.dataValues);
-						});
-					});
-				});
-
-				// member.getTeachers()
-				// .then(function(teachers){
-				// 	$scope.$apply(function() {
-				// 		teachers.forEach(function(teacher){
-				// 			$scope.teachers.push(teacher.dataValues);
-				// 		});
-				// 	});
-				// });
-
-				// member.getVisits()
-				// .then(function(visits){
-				// 	$scope.$apply(function() {
-				// 		visits.forEach(function(visit){
-				// 			$scope.visit.push(visit.dataValues);
-				// 		});
-				// 	});
-				// });
-
+			$scope.member = Member.get($routeParams.id);
+			$scope.families = Member.getFamilies($scope.member);
+			$scope.teachers = Member.getTeachers($scope.member);
+			$scope.companions = Member.getCompanions($scope.member);
+			Member.getVisits($scope.member).then(function(visits){
+				$scope.visits = visits;
+				console.log('visits in eidt member',visits)
 			});
+		};
+
+		$scope.open = function($event) {
+			console.log();
+			$event.preventDefault();
+			$event.stopPropagation();
+			$scope.opened = true;
 		};
 
 		$scope.assign = function(){
-			var relation = $scope.capitalize($routeParams.type);
+			$scope.setRoot('title', 'Assign ' + $filter('capitalize')($routeParams.type));
+			$scope.relation = $routeParams.type;
+			$scope.member = Member.get($routeParams.id);
+			$scope.selected = Member['get' + $filter('capitalize')($scope.relation)]($scope.member, '___id');
+			$scope.table();
+		};
 
-			$scope.set('relation', relation);
-			$scope.setRoot('title', 'Assign ' + relation);
-
-			Member.find({ id : parseInt($routeParams.id,10) })
-			.then(function(member){
-				$scope.set('member', member.dataValues, true);
-
-				if(!angular.isFunction(member['get' + relation])){
-					return false;
-				}
-
-				member['get' + relation]()
-				.then(function(rels){
-					// get the ids of the relations
-					rels.forEach(function(rel){
-						$scope.member.selected = true;
-					});
-					$scope.table({type: $routeParams.type});
-				});
-			});
+		$scope.tags = function(query){
+			var tags = Member.getTags(query);
+			console.log('tags',tags);
+			return tags;
 		};
 
 		$scope.delete = function(){
-			Member.destroy({ id : $scope.member.id })
-			.then(function(data){
-				$scope.redirect("/members");
-			});
+			Member.remove($scope.member);
+			$scope.redirect('back');
 		};
 
 		$scope.table = function(options){
 			options = options || {};
-			$scope.set('members', []); // keep here
+			$scope.members = []; // keep here
 
-			Member.table(options)
-			.then(function(members) {
-				if(members.length){
-					$scope.$apply(function() {
-						members.forEach(function(member){
-							$scope.members.push(member.dataValues);
-						});
-					});
+			var query = function(){
+				var search = {},
+				tokens = [];
+
+				if(options.search){
+					tokens = options.search.split(':');
+
+					// general like search
+					if(tokens.length === 1){
+						return {household:{likenocase: tokens}};
+					}
+
+					try{
+						search = $scope.$eval('{' + options.search + '}');
+					}finally {
+						// warn -- for latter
+					}
+
+					return search;
 				}
-				else if(!angular.isUndefined(options.search)){
-					$scope.setApply('members', []);
+				return; // return void
+			};
+
+			Member.get(query(), $scope.member)
+			.then(function(members){
+				console.log('members', members);
+				//Member.remove();
+				$scope.members = members; // keep here
+				if(!$scope.members.length && !angular.isUndefined(options.search)){
+					$scope.members = [];
 				}
-				else {
+				else if(!$scope.members.length) {
 					$scope.redirect("/members/import");
 				}
 			});
