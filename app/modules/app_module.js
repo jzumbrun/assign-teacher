@@ -5,7 +5,8 @@ var app = angular.module('app', [
   'ngRoute',
   'taffy',
   'history',
-  'ui.bootstrap'
+  'ui.bootstrap',
+  'ngTagsInput'
 ]);
 
 app.config(['$configProvider','$routeProvider', function($configProvider, $routeProvider) {

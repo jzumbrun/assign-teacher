@@ -3458,7 +3458,7 @@ angular.module('ui.bootstrap.typeahead', ['ui.bootstrap.position', 'ui.bootstrap
   return {
     require:'ngModel',
     link:function (originalScope, element, attrs, modelCtrl) {
-
+      console.log('hellos mate');
       //SUPPORTED ATTRIBUTES (OPTIONS)
 
       //minimal no of characters that needs to be entered before typeahead kicks-in

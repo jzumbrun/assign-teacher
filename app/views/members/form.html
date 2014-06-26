@@ -48,6 +48,11 @@
 				<textarea class="form-control" id="member_note" placeholder="Notes..."
 					ng-model="member.note"></textarea>
 			</div>
+			<div class="form-group">
+				<tags-input ng-model="member.tags">
+					<auto-complete source="tags($query)"></auto-complete>
+				</tags-input>
+			</div>
 		</form>
 
 		<div class="panel panel-default">

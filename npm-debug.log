@@ -1,0 +1,85 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'c:\\Program Files (x86)\\nodejs\\node.exe',
+1 verbose cli   'c:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'install',
+1 verbose cli   'bower-cli' ]
+2 info using npm@1.4.9
+3 info using node@v0.10.28
+4 warn package.json AssignTeacher@0.0.0 No description
+5 warn package.json AssignTeacher@0.0.0 No README data
+6 verbose readDependencies using package.json deps
+7 verbose cache add [ 'bower-cli', null ]
+8 verbose cache add name=undefined spec="bower-cli" args=["bower-cli",null]
+9 verbose parsed url { protocol: null,
+9 verbose parsed url   slashes: null,
+9 verbose parsed url   auth: null,
+9 verbose parsed url   host: null,
+9 verbose parsed url   port: null,
+9 verbose parsed url   hostname: null,
+9 verbose parsed url   hash: null,
+9 verbose parsed url   search: null,
+9 verbose parsed url   query: null,
+9 verbose parsed url   pathname: 'bower-cli',
+9 verbose parsed url   path: 'bower-cli',
+9 verbose parsed url   href: 'bower-cli' }
+10 silly lockFile b5fc92bc-bower-cli bower-cli
+11 verbose lock bower-cli C:\Users\Jon\AppData\Roaming\npm-cache\b5fc92bc-bower-cli.lock
+12 silly lockFile b5fc92bc-bower-cli bower-cli
+13 silly lockFile b5fc92bc-bower-cli bower-cli
+14 verbose addNamed [ 'bower-cli', '' ]
+15 verbose addNamed [ null, '*' ]
+16 silly lockFile 8942fdc3-bower-cli bower-cli@
+17 verbose lock bower-cli@ C:\Users\Jon\AppData\Roaming\npm-cache\8942fdc3-bower-cli.lock
+18 silly addNameRange { name: 'bower-cli', range: '*', hasData: false }
+19 verbose url raw bower-cli
+20 verbose url resolving [ 'https://registry.npmjs.org/', './bower-cli' ]
+21 verbose url resolved https://registry.npmjs.org/bower-cli
+22 info trying registry request attempt 1 at 21:25:05
+23 http GET https://registry.npmjs.org/bower-cli
+24 http 404 https://registry.npmjs.org/bower-cli
+25 verbose headers { date: 'Thu, 26 Jun 2014 02:24:53 GMT',
+25 verbose headers   server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+25 verbose headers   'content-type': 'application/json',
+25 verbose headers   'cache-control': 'max-age=0',
+25 verbose headers   'content-length': '52',
+25 verbose headers   'accept-ranges': 'bytes',
+25 verbose headers   via: '1.1 varnish',
+25 verbose headers   age: '0',
+25 verbose headers   'x-served-by': 'cache-v36-ASH',
+25 verbose headers   'x-cache': 'MISS',
+25 verbose headers   'x-cache-hits': '0',
+25 verbose headers   'x-timer': 'S1403749493.875424,VS0,VE26',
+25 verbose headers   'keep-alive': 'timeout=10, max=50',
+25 verbose headers   connection: 'Keep-Alive' }
+26 silly registry.get cb [ 404,
+26 silly registry.get   { date: 'Thu, 26 Jun 2014 02:24:53 GMT',
+26 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+26 silly registry.get     'content-type': 'application/json',
+26 silly registry.get     'cache-control': 'max-age=0',
+26 silly registry.get     'content-length': '52',
+26 silly registry.get     'accept-ranges': 'bytes',
+26 silly registry.get     via: '1.1 varnish',
+26 silly registry.get     age: '0',
+26 silly registry.get     'x-served-by': 'cache-v36-ASH',
+26 silly registry.get     'x-cache': 'MISS',
+26 silly registry.get     'x-cache-hits': '0',
+26 silly registry.get     'x-timer': 'S1403749493.875424,VS0,VE26',
+26 silly registry.get     'keep-alive': 'timeout=10, max=50',
+26 silly registry.get     connection: 'Keep-Alive' } ]
+27 silly lockFile 8942fdc3-bower-cli bower-cli@
+28 silly lockFile 8942fdc3-bower-cli bower-cli@
+29 error 404 404 Not Found: bower-cli
+29 error 404
+29 error 404 'bower-cli' is not in the npm registry.
+29 error 404 You should bug the author to publish it
+29 error 404 It was specified as a dependency of 'AssignTeacher'
+29 error 404
+29 error 404 Note that you can also install from a
+29 error 404 tarball, folder, or http url, or git url.
+30 error System Windows_NT 6.1.7601
+31 error command "c:\\Program Files (x86)\\nodejs\\node.exe" "c:\\Program Files (x86)\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "install" "bower-cli"
+32 error cwd c:\Users\Jon\Projects\assignteachers
+33 error node -v v0.10.28
+34 error npm -v 1.4.9
+35 error code E404
+36 verbose exit [ 1, true ]

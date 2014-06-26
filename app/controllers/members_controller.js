@@ -30,7 +30,7 @@ app.controller('MembersController', ['$scope','$routeParams','$filter','Member',
 			}
 			// update
 			else if($scope.member.___id){
-				console.log('update');
+				console.log('update',$scope.member);
 				Member.update( $scope.member );
 
 				if($scope.relation){
@@ -86,6 +86,12 @@ app.controller('MembersController', ['$scope','$routeParams','$filter','Member',
 			$scope.member = Member.get($routeParams.id);
 			$scope.selected = Member['get' + $filter('capitalize')($scope.relation)]($scope.member, '___id');
 			$scope.table();
+		};
+
+		$scope.tags = function(query){
+			var tags = Member.getTags(query);
+			console.log('tags',tags);
+			return tags;
 		};
 
 		$scope.delete = function(){

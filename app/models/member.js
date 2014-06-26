@@ -11,6 +11,7 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 		
 		self.db.settings({
 			name:'members',
+			allowNull : false,
 			template:{
 				first_name: '',
 				last_name: '',
@@ -28,7 +29,8 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 				is_senior: false,
 				senior: '',
 				teacher: '',
-				note: ''
+				note: '',
+				tags: ''
 			}
 		});
 
@@ -115,7 +117,6 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 			}
 			else{
 				deferred = $q.defer();
-
 				// assignments
 				if(angular.isObject(record) && record.___id){
 
@@ -145,7 +146,8 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 				}
 				// just a query
 				else if(angular.isObject(query)){
-					console.log('im in1');
+					console.log('im in1',query);
+
 					get = self.db(query).order('household asec').get();
 				}
 				// all records
@@ -155,7 +157,7 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 				}
 
 				// see if we have records in the localStorage
-				if(!get.length){
+				if(!query && !get.length){
 					console.log('im in3');
 					self.db.store().then(function(db){
 						deferred.resolve(db().order('household asec').get());
@@ -238,6 +240,41 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 				deferred.resolve(visits);
 			});
 
+			return deferred.promise;
+		};
+
+		self.getTags = function(query){
+
+			// default tags
+			var all_tags = ['elder', 'sister', 'focus', 'less-active'],
+			tags = [],
+			deferred = $q.defer();
+
+			// get all tags from the db
+			self.db().select('tags').forEach(function(record_tags){
+				if(record_tags.length){
+					record_tags.forEach(function(record_tag){
+						if(record_tag.text){
+							all_tags.push(record_tag.text);
+						}
+					});
+				}
+				
+			});
+
+			// unique them
+			tags = jQuery.grep(tags, function(v, k){
+				return jQuery.inArray(v ,tags) === k;
+			});
+
+			// query them
+			all_tags.forEach(function(tag){
+				if(tag.indexOf(query) > -1){
+					tags.push(tag);
+				}
+			});
+
+			deferred.resolve(tags);
 			return deferred.promise;
 		};
 	};
