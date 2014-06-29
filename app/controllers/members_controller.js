@@ -9,7 +9,6 @@ app.controller('MembersController', ['$scope','$routeParams','$filter','Member',
 
 		$scope.index = function(){
 			$scope.setRoot('title', 'Members');
-			$scope.member = {};
 			$scope.table();
 		};
 

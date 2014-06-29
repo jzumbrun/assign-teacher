@@ -1188,8 +1188,7 @@ function $taffyProvider(){
 						ID = {},
 						RC = 1,
 						settings = {
-							template          : false,
-							allowNull        : true,
+							template          : {'___id' : null, '___s' : null},
 							onInsert          : false,
 							onUpdate          : false,
 							onRemove          : false,
@@ -1308,6 +1307,37 @@ function $taffyProvider(){
 							}
 							return dm;
 						},
+						validate     : function ( record ) {
+							var valid = true;
+
+							this.clean([record]);
+
+							if(settings.template && T.isObject(record)){
+								eachin(settings.template, function(v,p){
+									if(T.isObject(v)){
+										// is required
+										if(v.required && !record[p]){
+											valid = false;
+										}
+									}
+								});
+							}
+							return valid;
+						},
+						clean  : function ( results ) {
+							// remove properties in record that are not in the template
+							if(T.isObject(settings.template) && T.isArray(results)){
+								console.log('cleaning');
+								each(results, function(record){
+									eachin(record, function(v,p){
+										if(p != '___id' && p != '___s' && T.isUndefined(settings.template[p])){
+											console.log('deleting:' + p);
+											delete record[p];
+										}
+									});
+								});
+							}
+						},
 						insert       : function ( i, runEvent ) {
 							// ****************************************
 							// *
@@ -1349,29 +1379,33 @@ function $taffyProvider(){
 									v = o;
 								}
 
-								RC++;
-								v.___id = 'T' + String( idpad + TC ).slice( -6 ) + 'R' +
-									String( idpad + RC ).slice( -6 );
-								v.___s = true;
-								records.push( v.___id );
-								if ( settings.template ){
-									v = T.mergeObj( settings.template, v, function(tv, ov){
-										if(!settings.allowNull && ov === null){ return tv; }
-										return ov;
-									});
-								}
-								TOb.push( v );
+								if(DBI.validate(v)){
+									RC++;
+									v.___id = 'T' + String( idpad + TC ).slice( -6 ) + 'R' +
+										String( idpad + RC ).slice( -6 );
+									v.___s = true;
+									records.push( v.___id );
+									if ( settings.template ){
+										v = T.mergeObj( settings.template, v, function(tv, ov){
+											if(T.isObject(tv) && TAFFY.isUndefined( ov ) ){ 
+												return tv.default; 
+											}
+											return ov;
+										});
+									}
+									TOb.push( v );
 
-								ID[v.___id] = TOb.length - 1;
-								if ( settings.onInsert &&
-									(runEvent || TAFFY.isUndefined( runEvent )) )
-								{
-									settings.onInsert.call( v );
-								}
+									ID[v.___id] = TOb.length - 1;
+									if ( settings.onInsert &&
+										(runEvent || TAFFY.isUndefined( runEvent )) )
+									{
+										settings.onInsert.call( v );
+									}
 
-								// dont save if we are told not to -- used for imports from localStorage
-								if(runEvent !== false){
-									DBI.dm( new Date() );
+									// dont save if we are told not to -- used for imports from localStorage
+									if(runEvent !== false){
+										DBI.dm( new Date() );
+									}
 								}
 							});
 							return root( records );
@@ -1409,15 +1443,16 @@ function $taffyProvider(){
 							or = TOb[ID[id]];
 							nr = T.mergeObj( or, changes );
 
-							tc = {};
-
 							if ( settings.onUpdate &&
 								(runEvent || TAFFY.isUndefined( runEvent )) )
 							{
-								settings.onUpdate.call( nr, TOb[ID[id]], tc );
+								settings.onUpdate.call( nr, TOb[ID[id]], changes );
 							}
-							TOb[ID[id]] = nr;
-							DBI.dm( new Date() );
+
+							if(DBI.validate(nr)){
+								TOb[ID[id]] = nr;
+								DBI.dm( new Date() );
+							}
 						},
 						remove       : function ( id ) {
 							// ****************************************
@@ -1692,7 +1727,7 @@ function $taffyProvider(){
 							settings = TAFFY.mergeObj( settings, n );
 							if ( n.template ){
 
-								root().update( n.template );
+								root().update( n.template ); // TODO: find out why template is being passed here
 							}
 						}
 						return settings;

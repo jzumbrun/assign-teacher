@@ -17,7 +17,7 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 				last_name: '',
 				city: '',
 				email: '',
-				household: '',
+				household: {required: true, default:''},
 				latitude: '',
 				location_status: '',
 				longitude: '',
@@ -83,7 +83,6 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 					self.db({___id:family}).update({teacher: record.___id});
 				});
 			}
-
 		};
 
 		self.setCompanions = function(record, companions){
@@ -97,7 +96,6 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 					self.db({___id:companion}).update({senior: record.___id});
 				});
 			}
-
 		};
 
 		self.remove = function(record){
@@ -107,6 +105,22 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 			else{
 				self.db().remove();
 			}
+		};
+
+		self.setDistance = function(record, rec){
+			// defualt get distance between members
+			if(!isNaN(parseInt(rec.latitude, 10)) && !isNaN(parseInt(rec.longitude, 10))){
+				var distance = geolib.getDistance(
+					{latitude: record.latitude, longitude: record.longitude},
+					{latitude: rec.latitude, longitude: rec.longitude}
+				);
+				rec.distance = geolib.convertUnit('mi', distance, 1);
+			}
+
+			if(!rec.distance && rec.distance !== 0){
+				rec.distance = 1000000; // 1000000 -- means unset, this allows proper ordering by assending
+			}
+
 		};
 
 		self.get = function(query,record){
@@ -120,45 +134,23 @@ app.factory('Member', ['$taffy', '$q', 'geolib', 'Visit',
 				// assignments
 				if(angular.isObject(record) && record.___id){
 
-					// query on assignments
-					if(angular.isObject(query)){
-						// dont include the current record
-						query = jQuery.extend({}, {___id:{'!is' : record.___id}}, query);
-					}
-					console.log('im in');
+					// dont include the current record
+					query = jQuery.extend({}, {___id:{'!is' : record.___id}}, query);
 					get = self.db(query).each(function(rec){
-						// defult get distance between members
-						if(!isNaN(parseInt(rec.latitude, 10)) && !isNaN(parseInt(rec.longitude, 10))){
-							var distance = geolib.getDistance(
-								{latitude: record.latitude, longitude: record.longitude},
-								{latitude: rec.latitude, longitude: rec.longitude}
-							);
-							rec.distance = geolib.convertUnit('mi', rec.distance, 1);
-						}
-
-						if(!rec.distance && rec.distance !== 0){
-							// one million -- means unset
-							rec.distance = 1000000;
-						}
-
+						self.setDistance(record, rec);
 					}).order('distance asec').get();
-
 				}
 				// just a query
 				else if(angular.isObject(query)){
-					console.log('im in1',query);
-
 					get = self.db(query).order('household asec').get();
 				}
 				// all records
 				else{
-					console.log('im in2');
 					get = self.db().order('household asec').get();
 				}
 
 				// see if we have records in the localStorage
 				if(!query && !get.length){
-					console.log('im in3');
 					self.db.store().then(function(db){
 						deferred.resolve(db().order('household asec').get());
 					});
