@@ -1296,7 +1296,7 @@ function $taffyProvider(){
 									if(chrome){
 										console.log('update storage')
 										var data = {}; data[settings.name] = TOb;
-										//chrome.storage.local.set(data);
+										chrome.storage.local.set(data);
 									}
 									else if(localStorage){
 										localStorage.setItem( settings.name,
