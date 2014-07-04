@@ -1,5 +1,7 @@
 # Assign Teacher
 
+###[![Build Status](https://travis-ci.org/jzumbrun/assign-teacher.svg?branch=master)](https://travis-ci.org/jzumbrun/assign-teacher)
+
 LDS Home and Visiting Teacher Assignment and Management, Angularjs Chrome Packaged App.
 
 ## Purpose
